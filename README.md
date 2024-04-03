@@ -56,9 +56,3 @@ If you have a suggestion that would make this better, please fork the repo and c
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## License
-This project is open-source and available under the [MIT License](LICENSE.md).
-```
-
-Please replace `YourEmail@example.com` with your actual email address, and ensure that you create a LICENSE.md file in your repository if you choose to license your project under the MIT License or another license of your choice.
