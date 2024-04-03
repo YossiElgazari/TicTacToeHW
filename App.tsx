@@ -1,41 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, StatusBar, StyleSheet, Text, TouchableOpacity, View, SafeAreaView } from 'react-native';
+import {
+  Modal,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  SafeAreaView,
+  Image,
+  ImageBackground
+} from 'react-native';
+
+const xImage = require('./assets/X.png');
+const oImage = require('./assets/O.png');
+const backgroundImage = require('./assets/background.jpg'); 
+
+type Player = 'X' | 'O' | null;
+type Winner = Player | 'Draw';
 
 export default function App() {
-  const [board, setBoard] = useState(Array(9).fill(null));
-  const [currentPlayer, setCurrentPlayer] = useState('X');
-  const [winner, setWinner] = useState(null);
+  const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
+  const [currentPlayer, setCurrentPlayer] = useState<Player>('X');
+  const [winner, setWinner] = useState<Winner>(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    checkWinner();
+  }, [board]);
 
   useEffect(() => {
     if (winner) {
       setModalVisible(true);
     }
-  }, [winner]); // Listen for changes to 'winner' to control modal visibility
+  }, [winner]);
 
-  const handlePress = (index) => {
+  const handlePress = (index: number) => {
     if (board[index] || winner) return;
     const newBoard = [...board];
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
     setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
-    checkWinner(newBoard); // Moved after setCurrentPlayer to ensure the correct player is shown
   };
 
-  const checkWinner = (newBoard) => {
+  const checkWinner = () => {
     const lines = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-      [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-      [0, 4, 8], [2, 4, 6] // diagonals
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
     ];
     for (let i = 0; i < lines.length; i++) {
       const [a, b, c] = lines[i];
-      if (newBoard[a] && newBoard[a] === newBoard[b] && newBoard[a] === newBoard[c]) {
-        setWinner(newBoard[a]);
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        setWinner(board[a]);
         return;
       }
     }
-    if (!newBoard.includes(null)) setWinner('Draw');
+    if (!board.includes(null) && !winner) setWinner('Draw');
   };
 
   const resetGame = () => {
@@ -45,37 +65,49 @@ export default function App() {
     setModalVisible(false);
   };
 
+  const getPlayerImage = (player: Player) => (player === 'X' ? xImage : oImage);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Tic Tac Toe</Text>
-      <View style={styles.board}>
-        {board.map((cell, index) => (
-          <TouchableOpacity key={index} style={styles.cell} onPress={() => handlePress(index)}>
-            <Text style={styles.cellText}>{cell}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
-        <Text style={styles.resetButtonText}>Reset Game</Text>
-      </TouchableOpacity>
-      <StatusBar style="auto" />
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>{winner === 'Draw' ? 'It\'s a Draw!' : `Winner: ${winner}`}</Text>
-            <TouchableOpacity style={[styles.button, styles.buttonClose]} onPress={resetGame}>
-              <Text style={styles.textStyle}>Play Again</Text>
+    <ImageBackground source={backgroundImage} style={styles.container}>
+      <SafeAreaView style={styles.overlay}>
+        <Text style={styles.title}>X Mix Drix</Text>
+        <View style={styles.board}>
+          {board.map((player, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.cell}
+              onPress={() => handlePress(index)}>
+              {player && <Image source={getPlayerImage(player)} style={styles.cellImage} />}
             </TouchableOpacity>
-          </View>
+          ))}
         </View>
-      </Modal>
-    </SafeAreaView>
+        <Text style={styles.turnIndicator}>
+          {winner ? 'Game Over' : `Player ${currentPlayer}'s turn`}
+        </Text>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalText}>
+                {winner === 'Draw' ? "It's a Draw!" : `Player ${winner} Wins!`}
+              </Text>
+              {winner !== 'Draw' && (
+                <Image source={getPlayerImage(winner)} style={styles.winnerImage} />
+              )}
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={resetGame}>
+                <Text style={styles.textStyle}>Play Again</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        <StatusBar/>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
@@ -85,13 +117,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent', // Set background to transparent to show the image
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 36,
+    color: 'black',
+    marginBottom: 20,
     fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 30,
+    paddingLeft: 5,
+    paddingRight: 5,
+    fontFamily: 'monospace',
+    backgroundColor: '#FFF',
+    borderRadius: 10,
   },
   board: {
     width: 300,
@@ -109,64 +151,58 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#444',
   },
-  cellText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#333',
+  cellImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
   },
-  status: {
-    fontSize: 22,
-    color: '#FFF',
-    marginBottom: 20,
-  },
-  resetButton: {
-    backgroundColor: '#0066FF',
-    padding: 10,
-    borderRadius: 5,
-  },
-  resetButtonText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+  turnIndicator: {
+    fontSize: 28,
+    marginBottom: 10,
+    color: 'black',
+    paddingLeft: 5,
+    paddingRight: 5,
+    fontFamily: 'monospace',
+    backgroundColor: '#FFF',
+    borderRadius: 10,
   },
   centeredView: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalView: {
+    width: '80%',
     margin: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 20,
     padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  winnerImage: {
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
+    marginVertical: 10,
   },
   button: {
     borderRadius: 20,
     padding: 10,
-    elevation: 2
+    elevation: 2,
   },
   buttonClose: {
-    backgroundColor: "#2196F3",
+    backgroundColor: '#2196F3',
   },
   textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: 'bold'
-  }
 });
