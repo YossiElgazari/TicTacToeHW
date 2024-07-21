@@ -47,8 +47,6 @@ npx react-native run-ios
 2. To build the application for production, follow the official React Native documentation for building projects with native code.
 
 ## Video
-<p align="center">
-    <a href="https://github.com/user-attachments/assets/533b2698-7f78-43cd-b645-f201462cc8ae">Watch Video</a>
-</p>
+ https://github.com/user-attachments/assets/533b2698-7f78-43cd-b645-f201462cc8ae
 
 
